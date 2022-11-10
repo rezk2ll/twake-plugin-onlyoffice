@@ -19,29 +19,35 @@ class ApiService implements IApiService {
   }
 
   public get = async <T>(params: IApiServiceRequestParams<T>): Promise<T> => {
-    const { url, token } = params;
+    const { url, token, responseType } = params;
 
     await this.initialized;
 
-    if (token) {
-      const config: AxiosRequestConfig = {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      };
+    const config: AxiosRequestConfig = {};
 
-      return this.axios.get(url, config);
+    if (token) {
+      config['headers'] = {
+        Authorization: `Bearer ${token}`,
+      };
     }
 
-    return await this.axios.get(url);
+    if (responseType) {
+      config['responseType'] = responseType;
+    }
+
+    return await this.axios.get(url, config);
   };
 
   public post = async <T, R>(params: IApiServiceRequestParams<T>): Promise<R> => {
-    const { url, payload } = params;
+    const { url, payload, headers } = params;
 
     await this.initialized;
 
-    return await this.axios.post(url, payload);
+    return await this.axios.post(url, payload, {
+      headers: {
+        ...headers,
+      },
+    });
   };
 
   private handleErrors = (error: any): Promise<any> => {
